@@ -1,0 +1,89 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* Barra de filtro */
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #d9d9d9;
+  border-radius: 999px;
+  padding: 12px 24px;
+  margin-bottom: 40px;
+}
+
+.filtro-icone {
+  font-size: 22px;
+  color: #444444;
+}
+
+.filtro select {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  outline: none;
+  flex: 1;
+}
+
+/* Cartões de números */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.kpi-titulo {
+  display: inline-block;
+  background: #d9d9d9;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.kpi-caixa {
+  background: #d9d9d9;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  color: #6f6f6f;
+}
+
+/* Gráficos */
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.grafico-card {
+  background: #d9d9d9;
+  padding: 12px;
+}
+
+.grafico-titulo {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.grafico-area {
+  width: 100%;
+  height: 220px;
+}
+
+/* Celular e telas pequenas: uma coluna */
+@media (max-width: 900px) {
+  .kpis,
+  .graficos {
+    grid-template-columns: 1fr;
+  }
+}
