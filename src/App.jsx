@@ -1,7 +1,16 @@
-import Dashboard from "./Dashboard";
+import { Link } from "react-router-dom";
 
 function App() {
-  return <Dashboard />;
+  return (
+    <div>
+      <h1>Início</h1>
+      <nav>
+  <Link to="/reclamacao">Nova reclamação</Link>
+  <br />
+  <Link to="/dashboard">Dashboard</Link>
+</nav>
+    </div>
+  );
 }
 
 export default App;
