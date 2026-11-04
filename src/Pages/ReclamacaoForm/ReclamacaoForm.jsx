@@ -1,151 +1,130 @@
-
 import { useState } from 'react';
 import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
-    const [querSolucao, setQuerSolucao] = useState('');
-    const [querAcordo, setQuerAcordo] = useState('');
     const [isAnonimo, setIsAnonimo] = useState('');
+    const [reclamacao, setReclamacao] = useState('');
+    const [querSolucao, setQuerSolucao] = useState('');
+    const [solucao, setSolucao] = useState('');
+    const [querAcordo, setQuerAcordo] = useState('');
+    const [arquivo, setArquivo] = useState(null); // Guarda o arquivo real
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // 1. Cria a caixa do formulário com suporte a arquivos
+        const formData = new FormData();
+        
+        // 2. Adiciona os campos de texto/booleano um por um
+        formData.append('isAnonimo', isAnonimo === 'true');
+        formData.append('reclamacao', reclamacao);
+        formData.append('hasSolucao', querSolucao === 'true');
+        formData.append('solucao', querSolucao === 'true' ? solucao : '');
+        formData.append('hasAcordo', querAcordo === 'true');
+
+        // 3. Adiciona o arquivo real (se o usuário selecionou algum)
+        if (arquivo) {
+            formData.append('arquivo', arquivo);
+        }
+
+        try {
+            // 4. Envia para o Spring Boot (Note que NÃO colocamos o Header Content-Type aqui!)
+            const response = await fetch('http://localhost:8080/api/reclamacao', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const resultado = await response.json();
+                console.log('Sucesso!', resultado);
+                alert('Reclamação e arquivo enviados com sucesso!');
+            } else {
+                alert('Erro ao enviar.');
+            }
+        } catch (error) {
+            console.error('Erro de conexão:', error);
+        }
+    };
 
     return (
-        <form>
+        <form onSubmit={handleSubmit}>
+            {/* Seus campos de rádio de anônimo */}
             <label>Anônimo?</label><br />
-            <input
-                type="radio"
-                id="is_anonimo_sim"
-                name="is_anonimo"
-                value="true"
-                onChange={(e) => setIsAnonimo(e.target.value)}
-                required
-            />
-            <label htmlFor="is_anonimo_sim">Sim</label><br />
-
-            <input
-                type="radio"
-                id="is_anonimo_nao"
-                name="is_anonimo"
-                value="false"
-                onChange={(e) => setIsAnonimo(e.target.value)}
-                required
-            />
-            <label htmlFor="is_anonimo_nao">Não</label><br />
-
-            {isAnonimo === 'false' && (
-                <>
-                    <label htmlFor="nome_usuario">Nome</label>
-                    <input
-                        type='text'
-                        id="nome_usuario"
-                        name="nome_usuario"
-                        required
-                    />
-                    <br />
-
-                    <label htmlFor="email_usuario">email</label>
-                    <input
-                        type='email'
-                        id="email_usuario"
-                        name="email_usuario"
-                        required
-                    />
-                    <br />
-                </>
-            )}
-
-            <label htmlFor="descricao_original">Reclamação</label><br />
-            <textarea
-                id="descricao_original"
-                name="descricao_original"
-                placeholder="Descreva o ocorrido."
-                required
-            />
+            <input 
+                type="radio" 
+                name="is_anonimo" 
+                value="true" 
+                onChange={(e) => setIsAnonimo(e.target.value)} 
+                required 
+            /> Sim
+            <input 
+                type="radio" 
+                name="is_anonimo" 
+                value="false" 
+                onChange={(e) => setIsAnonimo(e.target.value)} 
+                required 
+            /> Não
             <br />
-            <input
-                id="descricao_original"
-                name="descricao_original"
-                placeholder='Suba um arquivo'
-                type='file'
-             /><br />
 
+            <label>Reclamação</label><br />
+            <textarea 
+                value={reclamacao} 
+                onChange={(e) => setReclamacao(e.target.value)} 
+                required 
+            /><br />
+
+            {/* Captura o arquivo de verdade aqui */}
+            <label>Suba um arquivo</label><br />
+            <input 
+                type="file" 
+                onChange={(e) => setArquivo(e.target.files[0])} 
+            /><br />
+
+            {/* Resto dos seus campos de solução e acordo... */}
             <label>Deseja propor solução?</label><br />
-
-            <input
-                type="radio"
-                id="quer_solucao_radio_sim"
-                name="quer_solucao"
-                value="true"
-                onChange={(e) => setQuerSolucao(e.target.value)}
+            <input 
+                type="radio" 
+                name="quer_solucao" 
+                value="true" 
+                onChange={(e) => setQuerSolucao(e.target.value)} 
                 required
-            />
-            <label htmlFor="quer_solucao_radio_sim">Sim</label><br />
-
-            <input
-                type="radio"
-                id="quer_solucao_radio_nao"
-                name="quer_solucao"
-                value="false"
-                onChange={(e) => setQuerSolucao(e.target.value)}
-            />
-            <label htmlFor="quer_solucao_radio_nao">Não</label><br />
+            /> Sim
+            <input 
+                type="radio" 
+                name="quer_solucao" 
+                value="false" 
+                onChange={(e) => setQuerSolucao(e.target.value)} 
+                required
+            /> Não            
+            <br />
 
             {querSolucao === 'true' && (
                 <>
-                    <label htmlFor="solucao_proposta">
-                        Descreva a solução proposta
-                    </label><br />
-                    <textarea
-                        id="solucao_proposta"
-                        name="solucao_proposta"
-                        placeholder="Descreva a solução que você propõe."
-                        required
-                    />
-                    <br />
+                    <textarea 
+                        placeholder="Descreva a solução..."
+                        value={solucao} 
+                        onChange={(e) => setSolucao(e.target.value)} 
+                        required 
+                    /><br />
                 </>
             )}
 
-            <div className="tooltip-container">
-                <label>Deseja formalizar o acordo?</label>
-
-                <span className="tooltip">
-                    ?
-                    <span className="tooltip-text">
-                        <br />
-                        O Termo de Acordo é destinado a situações que exigem
-                        uma solução formal e um compromisso entre as partes.
-                        Reclamações cotidianas, como a falta recorrente de
-                        materiais de uso comum, podem não exigir esse tipo
-                        de formalização.
-                        <br />
-                    </span>
-                </span>
-            </div>
-            
-            <input
-                type="radio"
-                id="quer_acordo_radio_sim"
-                name="quer_acordo"
-                value="true"
+            <label>Deseja formalizar o acordo?</label><br />
+            <input 
+                type="radio" 
+                name="quer_acordo" 
+                value="true" 
+                onChange={(e) => setQuerAcordo(e.target.value)} 
+                required 
+            /> Sim
+            <input 
+                type="radio" 
+                name="quer_acordo" 
+                value="false" 
                 onChange={(e) => setQuerAcordo(e.target.value)}
                 required
-            />
-            <label htmlFor="quer_acordo_radio_sim">Sim</label><br />
-
-            <input
-                type="radio"
-                id="quer_acordo_radio_nao"
-                name="quer_acordo"
-                value="false"
-                onChange={(e) => setQuerAcordo(e.target.value)}
-            />
-            <label htmlFor="quer_acordo_radio_nao">Não</label><br />
-
-            {querAcordo === 'true' && (
-                <p>
-                    Você optou por continuar com a formalização do acordo.
-                    Os termos deverão ser definidos e apresentados para
-                    sua análise antes da assinatura.
-                </p>
-            )}
+            /> Não
+            <br />
 
             <button type="submit">Enviar formulário</button>
         </form>
