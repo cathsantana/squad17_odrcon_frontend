@@ -109,3 +109,37 @@
     padding: 24px;
   }
 }
+.login-public-access {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e3e9f2;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #606d80;
+}
+
+.login-public-access p {
+  margin: 0 0 8px;
+}
+
+.login-public-access p:last-child {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.login-public-access a {
+  color: #2459c4;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-public-access a:hover {
+  color: #19479f;
+}
+
+.login-public-access a:focus-visible {
+  outline: 3px solid #91b5ff;
+  outline-offset: 3px;
+}

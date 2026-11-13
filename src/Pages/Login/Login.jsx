@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './Login.css'
 
 export default function Login() {
@@ -27,7 +27,6 @@ export default function Login() {
     setCarregando(true)
 
     try {
-      // Busca o token e recebe o cookie da sessão.
       const respostaCsrf = await fetch('/api/auth/csrf', {
         credentials: 'include',
         cache: 'no-store',
@@ -75,7 +74,6 @@ export default function Login() {
         throw new Error('Não foi possível entrar. Tente novamente mais tarde.')
       }
 
-      // A autenticação fica no cookie de sessão, gerenciado pelo navegador.
       setSenha('')
       navigate('/dashboard', { replace: true })
     } catch (error) {
@@ -93,7 +91,9 @@ export default function Login() {
     <main className="login-page">
       <section className="login-card" aria-labelledby="login-title">
         <span className="login-brand">ODRCON</span>
-        <h1 id="login-title">Acesse sua conta</h1>
+
+        <h1 id="login-title">Acesso da equipe</h1>
+
         <p className="login-description">
           Entre para acompanhar e gerenciar manifestações.
         </p>
@@ -146,6 +146,12 @@ export default function Login() {
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
+
+        <div className="login-public-access">
+          <p>Quer registrar uma manifestação?</p>
+          <Link to="/reclamacao">Continue sem fazer login</Link>
+          <p>Você poderá escolher a opção anônima no formulário.</p>
+        </div>
       </section>
     </main>
   )

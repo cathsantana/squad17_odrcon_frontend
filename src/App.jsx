@@ -1,16 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 
 function App() {
   return (
-    <div>
-      <h1>Início</h1>
-      <nav>
-  <Link to="/reclamacao">Nova reclamação</Link>
-  <br />
-  <Link to="/dashboard">Dashboard</Link>
-</nav>
-    </div>
-  );
+    <main>
+      <h1>ODRCON</h1>
+      <p>Escolha como deseja acessar o sistema.</p>
+
+      <nav aria-label="Acessos principais">
+        <Link to="/reclamacao">Registrar manifestação</Link>
+        <p>Você pode registrar uma manifestação anônima, sem fazer login.</p>
+
+        <Link to="/login">Acesso da equipe</Link>
+      </nav>
+    </main>
+  )
 }
 
-export default App;
+export default App
