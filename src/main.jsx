@@ -9,13 +9,14 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App.jsx'
 import ReclamacaoForm from './Pages/ReclamacaoForm/ReclamacaoForm.jsx'
 import Dashboard from './Pages/Dashboard/Dashboard.jsx'
+import Login from './Pages/Login/Login.jsx'
 
 // ROTEAMENTOS
 const router = createBrowserRouter([
-  {path:'/', element:<App/>},
-  {path:'/reclamacao', element:<ReclamacaoForm/>},
-  {path:'/dashboard', element:<Dashboard/>}
-
+  { path: '/', element: <App /> },
+  { path: '/login', element: <Login /> },
+  { path: '/reclamacao', element: <ReclamacaoForm /> },
+  { path: '/dashboard', element: <Dashboard /> },
 ])
 
 createRoot(document.getElementById('root')).render(
