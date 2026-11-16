@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import BotaoSair from "../../Components/BotaoSair/BotaoSair.jsx";
 import "./Dashboard.css";
 
 const API = "/api";
@@ -31,9 +32,15 @@ function Dashboard() {
         signal: controller.signal,
       });
 
-      if (resposta.status === 401 || resposta.status === 403) {
+      if (resposta.status === 401) {
         throw new Error(
-          "Sua sessão não está autorizada. Faça login novamente."
+          "Sua sessão expirou ou você não está conectado. Faça login novamente."
+        );
+      }
+
+      if (resposta.status === 403) {
+        throw new Error(
+          "Sua conta não tem permissão para acessar os dados do dashboard."
         );
       }
 
@@ -79,7 +86,9 @@ function Dashboard() {
           !Number.isFinite(dadosResumo.percentualResolvidas) ||
           !Number.isFinite(dadosResumo.mediaWho5)
         ) {
-          throw new Error("A API retornou um resumo em formato inválido.");
+          throw new Error(
+            "A API retornou um resumo em formato inválido."
+          );
         }
 
         setResumo(dadosResumo);
@@ -106,8 +115,9 @@ function Dashboard() {
 
   if (carregando) {
     return (
-      <div className="dashboard" role="status">
-        Carregando dashboard...
+      <div className="dashboard">
+        <BotaoSair />
+        <p role="status">Carregando dashboard...</p>
       </div>
     );
   }
@@ -117,16 +127,21 @@ function Dashboard() {
       <div className="dashboard">
         <p role="alert">{erro}</p>
         <a href="/login">Ir para o login</a>
+        <BotaoSair />
       </div>
     );
   }
 
   return (
     <div className="dashboard">
-      {/* Filtro (ainda sem função) */}
+      <BotaoSair />
+
+      {/* Filtro visual: ainda não altera os dados. */}
       <div className="filtro">
-        <span className="filtro-icone">▼</span>
-        <select defaultValue="todos">
+        <span className="filtro-icone" aria-hidden="true">
+          ▼
+        </span>
+        <select defaultValue="todos" aria-label="Período do dashboard">
           <option value="todos">Todo o período</option>
           <option value="mes">Último mês</option>
           <option value="trimestre">Último trimestre</option>
@@ -151,7 +166,9 @@ function Dashboard() {
 
         <div>
           <span className="kpi-titulo">Média WHO-5</span>
-          <div className="kpi-caixa">{resumo.mediaWho5}</div>
+          <div className="kpi-caixa">
+            {resumo.mediaWho5}
+          </div>
         </div>
       </div>
 
