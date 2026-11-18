@@ -25,6 +25,9 @@ function App() {
             <Link to="/reclamacao" className="home-link">
               Abrir formulário
             </Link>
+            <Link to="/revisao-ia" className="home-link">
+              Revisar uma reclamação com IA
+            </Link>
           </section>
 
           <section className="home-option">
