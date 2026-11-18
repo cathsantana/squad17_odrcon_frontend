@@ -1,4 +1,5 @@
 import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
+import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
     const [isAnonimo, setIsAnonimo] = useState('');
@@ -7,8 +8,6 @@ function ReclamacaoForm() {
     const [solucao, setSolucao] = useState('');
     const [querAcordo, setQuerAcordo] = useState('');
     const [arquivo, setArquivo] = useState(null);
-
-    // [ADICIONADO] Lista fictícia de 1 a 20 e estados para guardar a seleção
     const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
     const [empresaSelecionada, setEmpresaSelecionada] = useState('');
     const [unidadeSelecionada, setUnidadeSelecionada] = useState('');
@@ -24,7 +23,6 @@ function ReclamacaoForm() {
         formData.append('solucao', querSolucao === 'true' ? solucao : '');
         formData.append('hasAcordo', querAcordo === 'true');
 
-        // [ADICIONADO] Envia os IDs fictícios de empresa e unidade se for anônimo
         if (isAnonimo === 'true') {
             formData.append('idEmpresa', empresaSelecionada);
             if (unidadeSelecionada) {
@@ -73,7 +71,6 @@ function ReclamacaoForm() {
             /> Não
             <br />
 
-            {/* [ADICIONADO] Seletores de Empresa (obrigatório) e Unidade (opcional) de 1 a 20 */}
             {isAnonimo === 'true' && (
                 <>
                     <label>Empresa</label><br />
