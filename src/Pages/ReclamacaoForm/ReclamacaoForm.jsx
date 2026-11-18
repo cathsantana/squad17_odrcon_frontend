@@ -1,5 +1,4 @@
 import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
-import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
     const [isAnonimo, setIsAnonimo] = useState('');
