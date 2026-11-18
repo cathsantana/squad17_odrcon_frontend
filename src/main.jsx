@@ -9,6 +9,7 @@ import Dashboard from './Pages/Dashboard/Dashboard.jsx'
 import Login from './Pages/Login/Login.jsx'
 import Cadastro from './Pages/Cadastro/Cadastro.jsx'
 import Cliente from './Pages/Cliente/Cliente.jsx'
+import RevisaoIA from './Pages/RevisaoIA/RevisaoIA.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <App /> },
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
   { path: '/reclamacao', element: <ReclamacaoForm /> },
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/cliente', element: <Cliente /> },
+  { path: '/revisao-ia', element: <RevisaoIA /> },
 ])
 
 createRoot(document.getElementById('root')).render(
