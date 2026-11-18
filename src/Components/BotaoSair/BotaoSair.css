@@ -1,0 +1,37 @@
+.logout-area {
+  margin-top: 20px;
+}
+
+.logout-area .logout-button {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: #f5f5f5;
+  color: #222;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logout-area .logout-button:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.logout-area .logout-button:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 3px;
+}
+
+.logout-area .logout-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.logout-error {
+  margin-top: 10px;
+  color: #222;
+  font-size: 14px;
+  line-height: 1.5;
+}
