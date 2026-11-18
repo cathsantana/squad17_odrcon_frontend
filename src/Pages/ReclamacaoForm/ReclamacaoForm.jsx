@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
 import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
@@ -7,28 +7,34 @@ function ReclamacaoForm() {
     const [querSolucao, setQuerSolucao] = useState('');
     const [solucao, setSolucao] = useState('');
     const [querAcordo, setQuerAcordo] = useState('');
-    const [arquivo, setArquivo] = useState(null); // Guarda o arquivo real
+    const [arquivo, setArquivo] = useState(null);
+    const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
+    const [empresaSelecionada, setEmpresaSelecionada] = useState('');
+    const [unidadeSelecionada, setUnidadeSelecionada] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Cria a caixa do formulário com suporte a arquivos
         const formData = new FormData();
         
-        // 2. Adiciona os campos de texto/booleano um por um
         formData.append('isAnonimo', isAnonimo === 'true');
         formData.append('reclamacao', reclamacao);
         formData.append('hasSolucao', querSolucao === 'true');
         formData.append('solucao', querSolucao === 'true' ? solucao : '');
         formData.append('hasAcordo', querAcordo === 'true');
 
-        // 3. Adiciona o arquivo real (se o usuário selecionou algum)
+        if (isAnonimo === 'true') {
+            formData.append('idEmpresa', empresaSelecionada);
+            if (unidadeSelecionada) {
+                formData.append('idUnidade', unidadeSelecionada);
+            }
+        }
+
         if (arquivo) {
             formData.append('arquivo', arquivo);
         }
 
         try {
-            // 4. Envia para o Spring Boot (Note que NÃO colocamos o Header Content-Type aqui!)
             const response = await fetch('http://localhost:8080/api/reclamacao', {
                 method: 'POST',
                 body: formData,
@@ -48,7 +54,6 @@ function ReclamacaoForm() {
 
     return (
         <form onSubmit={handleSubmit}>
-            {/* Seus campos de rádio de anônimo */}
             <label>Anônimo?</label><br />
             <input 
                 type="radio" 
@@ -66,6 +71,33 @@ function ReclamacaoForm() {
             /> Não
             <br />
 
+            {isAnonimo === 'true' && (
+                <>
+                    <label>Empresa</label><br />
+                    <select 
+                        value={empresaSelecionada} 
+                        onChange={(e) => setEmpresaSelecionada(e.target.value)} 
+                        required
+                    >
+                        <option value="">Selecione a empresa...</option>
+                        {opcoesFicticias.map((num) => (
+                            <option key={num} value={num}>Empresa {num}</option>
+                        ))}
+                    </select><br />
+
+                    <label>Unidade (Opcional)</label><br />
+                    <select 
+                        value={unidadeSelecionada} 
+                        onChange={(e) => setUnidadeSelecionada(e.target.value)}
+                    >
+                        <option value="">Nenhuma unidade</option>
+                        {opcoesFicticias.map((num) => (
+                            <option key={num} value={num}>Unidade {num}</option>
+                        ))}
+                    </select><br />
+                </>
+            )}
+
             <label>Reclamação</label><br />
             <textarea 
                 value={reclamacao} 
@@ -73,14 +105,12 @@ function ReclamacaoForm() {
                 required 
             /><br />
 
-            {/* Captura o arquivo de verdade aqui */}
             <label>Suba um arquivo</label><br />
             <input 
                 type="file" 
                 onChange={(e) => setArquivo(e.target.files[0])} 
             /><br />
 
-            {/* Resto dos seus campos de solução e acordo... */}
             <label>Deseja propor solução?</label><br />
             <input 
                 type="radio" 
