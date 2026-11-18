@@ -8,11 +8,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 // IMPORTS DE COMPONENTES
 import App from './App.jsx'
 import ReclamacaoForm from './Pages/ReclamacaoForm/ReclamacaoForm.jsx'
+import RevisaoIA from './Pages/RevisaoIA/RevisaoIA.jsx'
 
 // ROTEAMENTOS
 const router = createBrowserRouter([
   {path:'/', element:<App/>},
-  {path:'/reclamacao', element:<ReclamacaoForm/>}
+  {path:'/reclamacao', element:<ReclamacaoForm/>},
+  {path:'/revisao-ia', element:<RevisaoIA/>}
 ])
 
 createRoot(document.getElementById('root')).render(
