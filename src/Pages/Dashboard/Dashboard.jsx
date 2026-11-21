@@ -16,6 +16,7 @@ import "./Dashboard.css";
 const API = "/api";
 
 function Dashboard() {
+  const [periodo, setPeriodo] = useState("todo");
   const [resumo, setResumo] = useState(null);
   const [porMes, setPorMes] = useState([]);
   const [porPrioridade, setPorPrioridade] = useState([]);
@@ -27,7 +28,7 @@ function Dashboard() {
     const controller = new AbortController();
 
     async function buscarDados(caminho, esperaLista = false) {
-      const resposta = await fetch(`${API}${caminho}`, {
+      const resposta = await fetch(`${API}${caminho}?periodo=${periodo}`, {
         credentials: "include",
         signal: controller.signal,
       });
@@ -53,9 +54,7 @@ function Dashboard() {
       const dados = await resposta.json();
 
       if (esperaLista && !Array.isArray(dados)) {
-        throw new Error(
-          `A API retornou um formato inválido em ${caminho}.`
-        );
+        throw new Error(`A API retornou um formato inválido em ${caminho}.`);
       }
 
       return dados;
@@ -66,17 +65,13 @@ function Dashboard() {
       setErro("");
 
       try {
-        const [
-          dadosResumo,
-          dadosPorMes,
-          dadosPorPrioridade,
-          dadosWho5,
-        ] = await Promise.all([
-          buscarDados("/resumo"),
-          buscarDados("/reclamacoes-por-mes", true),
-          buscarDados("/reclamacoes-por-prioridade", true),
-          buscarDados("/who5-por-mes", true),
-        ]);
+        const [dadosResumo, dadosPorMes, dadosPorPrioridade, dadosWho5] =
+          await Promise.all([
+            buscarDados("/resumo"),
+            buscarDados("/reclamacoes-por-mes", true),
+            buscarDados("/reclamacoes-por-prioridade", true),
+            buscarDados("/who5-por-mes", true),
+          ]);
 
         if (controller.signal.aborted) return;
 
@@ -86,9 +81,7 @@ function Dashboard() {
           !Number.isFinite(dadosResumo.percentualResolvidas) ||
           !Number.isFinite(dadosResumo.mediaWho5)
         ) {
-          throw new Error(
-            "A API retornou um resumo em formato inválido."
-          );
+          throw new Error("A API retornou um resumo em formato inválido.");
         }
 
         setResumo(dadosResumo);
@@ -98,9 +91,7 @@ function Dashboard() {
       } catch (error) {
         if (controller.signal.aborted) return;
 
-        setErro(
-          error.message || "Não foi possível carregar o dashboard."
-        );
+        setErro(error.message || "Não foi possível carregar o dashboard.");
       } finally {
         if (!controller.signal.aborted) {
           setCarregando(false);
@@ -111,9 +102,10 @@ function Dashboard() {
     carregarDashboard();
 
     return () => controller.abort();
-  }, []);
+  }, [periodo]);
 
-  if (carregando) {
+  // Tela cheia só na primeira carga (ainda sem dados)
+  if (carregando && !resumo) {
     return (
       <div className="dashboard">
         <BotaoSair />
@@ -122,7 +114,8 @@ function Dashboard() {
     );
   }
 
-  if (erro) {
+  // Erro na primeira carga: não há o que mostrar
+  if (erro && !resumo) {
     return (
       <div className="dashboard">
         <p role="alert">{erro}</p>
@@ -136,39 +129,40 @@ function Dashboard() {
     <div className="dashboard">
       <BotaoSair />
 
-      {/* Filtro visual: ainda não altera os dados. */}
+      {/* Filtro de período */}
       <div className="filtro">
         <span className="filtro-icone" aria-hidden="true">
           ▼
         </span>
-        <select defaultValue="todos" aria-label="Período do dashboard">
-          <option value="todos">Todo o período</option>
+        <select
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value)}
+          aria-label="Período do dashboard"
+        >
+          <option value="todo">Todo o período</option>
           <option value="mes">Último mês</option>
           <option value="trimestre">Último trimestre</option>
         </select>
       </div>
 
+      {/* Erro ao trocar o filtro: mantém o conteúdo e avisa */}
+      {erro && <p role="alert">{erro}</p>}
+
       {/* Cartões de números */}
       <div className="kpis">
         <div>
           <span className="kpi-titulo">Total de reclamações</span>
-          <div className="kpi-caixa">
-            {resumo.totalReclamacoes}
-          </div>
+          <div className="kpi-caixa">{resumo.totalReclamacoes}</div>
         </div>
 
         <div>
           <span className="kpi-titulo">Reclamações resolvidas</span>
-          <div className="kpi-caixa">
-            {resumo.percentualResolvidas}%
-          </div>
+          <div className="kpi-caixa">{resumo.percentualResolvidas}%</div>
         </div>
 
         <div>
           <span className="kpi-titulo">Média WHO-5</span>
-          <div className="kpi-caixa">
-            {resumo.mediaWho5}
-          </div>
+          <div className="kpi-caixa">{resumo.mediaWho5}</div>
         </div>
       </div>
 
@@ -183,20 +177,14 @@ function Dashboard() {
                 <XAxis dataKey="mes" />
                 <YAxis />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#6f6f6f"
-                />
+                <Line type="monotone" dataKey="total" stroke="#6f6f6f" />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="grafico-card">
-          <h3 className="grafico-titulo">
-            Reclamações por prioridade
-          </h3>
+          <h3 className="grafico-titulo">Reclamações por prioridade</h3>
           <div className="grafico-area">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={porPrioridade}>
@@ -219,11 +207,7 @@ function Dashboard() {
                 <XAxis dataKey="mes" />
                 <YAxis />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="media"
-                  stroke="#6f6f6f"
-                />
+                <Line type="monotone" dataKey="media" stroke="#6f6f6f" />
               </LineChart>
             </ResponsiveContainer>
           </div>
