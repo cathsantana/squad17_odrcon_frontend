@@ -76,10 +76,11 @@ export default function Cliente() {
             <p className="login-description">
               Você está conectado à sua conta.
             </p>
-            <p>
-              O acompanhamento das suas manifestações ainda não está
-              disponível nesta página.
-            </p>
+           <nav className="login-public-access">
+              <Link to="/cliente/minhas">Minhas reclamações</Link>
+              <Link to="/procurar">Procurar reclamação</Link>
+              <Link to="/cliente/nova">Fazer reclamação</Link>
+           </nav>
             <div className="login-public-access">
   <Link to="/">Página inicial</Link>
   <BotaoSair />
