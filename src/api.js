@@ -3,12 +3,12 @@ async function postComCsrf(url, dados) {
     credentials: "include",
     cache: "no-store",
   });
+  const dadosCsrf = await respostaCsrf.json().catch(() => null);
   if (!respostaCsrf.ok) {
-    const dados = await respostaCsrf.json().catch(() => null);
-    throw new Error(dados?.erro || "Não foi possível obter o token de segurança.");
+    throw new Error(dadosCsrf?.erro || "Não foi possível obter o token de segurança.");
   }
 
-  const { headerName, token } = await respostaCsrf.json();
+  const { headerName, token } = dadosCsrf ?? {};
   if (!headerName || !token) {
     throw new Error("O servidor retornou um token de segurança inválido.");
   }
@@ -29,12 +29,16 @@ export async function reformularReclamacao(textoOriginal) {
   const dados = await resposta.json().catch(() => null);
 
   if (!resposta.ok) {
+    if (resposta.status === 403) {
+      throw new Error(dados?.erro || "A verificação de segurança recusou a solicitação. Recarregue a página e tente novamente.");
+    }
     throw new Error(dados?.erro || "Não foi possível gerar a sugestão. Tente novamente.");
   }
 
-  if (typeof dados?.textoReformulado !== "string" || !dados.textoReformulado.trim()) {
+  const textoReformulado = dados?.textoReformulado;
+  if (typeof textoReformulado !== "string" || !textoReformulado.trim()) {
     throw new Error("O servidor não retornou uma reformulação utilizável.");
   }
 
-  return dados.textoReformulado;
+  return textoReformulado;
 }
