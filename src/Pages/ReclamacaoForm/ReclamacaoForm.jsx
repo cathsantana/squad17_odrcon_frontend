@@ -1,5 +1,5 @@
 import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
-import { reformularReclamacao } from '../../api.js';
+import { reformularReclamacao, registrarReclamacao } from '../../api.js';
 import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
@@ -9,6 +9,10 @@ function ReclamacaoForm() {
     const [solucao, setSolucao] = useState('');
     const [querAcordo, setQuerAcordo] = useState('');
     const [arquivo, setArquivo] = useState(null);
+    const [enviando, setEnviando] = useState(false);
+    const [erroRegistro, setErroRegistro] = useState('');
+    const [confirmacao, setConfirmacao] = useState(null);
+    const [feedbackCopia, setFeedbackCopia] = useState('');
     const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
     const [empresaSelecionada, setEmpresaSelecionada] = useState('');
     const [unidadeSelecionada, setUnidadeSelecionada] = useState('');
@@ -36,7 +40,10 @@ function ReclamacaoForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (enviando) return;
 
+        setEnviando(true);
+        setErroRegistro('');
         const formData = new FormData();
         
         formData.append('isAnonimo', isAnonimo === 'true');
@@ -57,20 +64,38 @@ function ReclamacaoForm() {
         }
 
         try {
-            const response = await fetch('/api/reclamacao', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                alert('Reclamação enviada com sucesso!');
-            } else {
-                alert('Erro ao enviar.');
-            }
+            setConfirmacao(await registrarReclamacao(formData));
         } catch (error) {
-            console.error('Erro de conexão:', error);
+            setErroRegistro(error instanceof TypeError
+                ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+                : error.message);
+        } finally {
+            setEnviando(false);
         }
     };
+
+    const copiarProtocolo = async () => {
+        try {
+            await navigator.clipboard.writeText(confirmacao.protocolo);
+            setFeedbackCopia('Protocolo copiado.');
+        } catch {
+            setFeedbackCopia('Não foi possível copiar. Selecione o número e copie manualmente.');
+        }
+    };
+
+    if (confirmacao) {
+        return (
+            <section aria-label="Confirmação do registro">
+                <div role="status">
+                    <p>{confirmacao.mensagem}</p>
+                    <p>Protocolo <strong>{confirmacao.protocolo}</strong></p>
+                    <p>Guarde este número para acompanhar sua manifestação.</p>
+                </div>
+                <button type="button" onClick={copiarProtocolo}>Copiar protocolo</button>
+                <p role="status">{feedbackCopia}</p>
+            </section>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit}>
@@ -211,7 +236,10 @@ function ReclamacaoForm() {
             /> Não
             <br />
 
-            <button type="submit">Enviar formulário</button>
+            {erroRegistro && <p role="alert">{erroRegistro}</p>}
+            <button type="submit" disabled={enviando}>
+                {enviando ? 'Enviando…' : 'Enviar formulário'}
+            </button>
         </form>
     );
 }
