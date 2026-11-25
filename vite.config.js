@@ -7,7 +7,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true,
+        // Preserve o Host do navegador para que o Spring reconheça a mesma origem.
+        changeOrigin: false,
       },
     },
   },

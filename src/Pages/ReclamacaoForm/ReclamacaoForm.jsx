@@ -1,4 +1,5 @@
 import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
+import { reformularReclamacao, registrarReclamacao } from '../../api.js';
 import './ReclamacaoForm.css';
 
 function ReclamacaoForm() {
@@ -8,17 +9,45 @@ function ReclamacaoForm() {
     const [solucao, setSolucao] = useState('');
     const [querAcordo, setQuerAcordo] = useState('');
     const [arquivo, setArquivo] = useState(null);
+    const [enviando, setEnviando] = useState(false);
+    const [erroRegistro, setErroRegistro] = useState('');
+    const [confirmacao, setConfirmacao] = useState(null);
+    const [feedbackCopia, setFeedbackCopia] = useState('');
     const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
     const [empresaSelecionada, setEmpresaSelecionada] = useState('');
     const [unidadeSelecionada, setUnidadeSelecionada] = useState('');
+    const [resultadoIA, setResultadoIA] = useState(null);
+    const [gerandoSugestao, setGerandoSugestao] = useState(false);
+    const [usarSugestao, setUsarSugestao] = useState(false);
+    const revisao = resultadoIA?.original === reclamacao ? resultadoIA : null;
+    const sugestao = revisao?.textoReformulado;
+
+    const gerarSugestao = async () => {
+        const original = reclamacao;
+        setResultadoIA(null);
+        setUsarSugestao(false);
+        setGerandoSugestao(true);
+
+        try {
+            const textoReformulado = await reformularReclamacao(original);
+            setResultadoIA({ original, textoReformulado });
+        } catch (error) {
+            setResultadoIA({ original, erro: error.message });
+        } finally {
+            setGerandoSugestao(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (enviando) return;
 
+        setEnviando(true);
+        setErroRegistro('');
         const formData = new FormData();
         
         formData.append('isAnonimo', isAnonimo === 'true');
-        formData.append('reclamacao', reclamacao);
+        formData.append('reclamacao', usarSugestao && sugestao ? sugestao : reclamacao);
         formData.append('hasSolucao', querSolucao === 'true');
         formData.append('solucao', querSolucao === 'true' ? solucao : '');
         formData.append('hasAcordo', querAcordo === 'true');
@@ -35,22 +64,38 @@ function ReclamacaoForm() {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/reclamacao', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                const resultado = await response.json();
-                console.log('Sucesso!', resultado);
-                alert('Reclamação e arquivo enviados com sucesso!');
-            } else {
-                alert('Erro ao enviar.');
-            }
+            setConfirmacao(await registrarReclamacao(formData));
         } catch (error) {
-            console.error('Erro de conexão:', error);
+            setErroRegistro(error instanceof TypeError
+                ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+                : error.message);
+        } finally {
+            setEnviando(false);
         }
     };
+
+    const copiarProtocolo = async () => {
+        try {
+            await navigator.clipboard.writeText(confirmacao.protocolo);
+            setFeedbackCopia('Protocolo copiado.');
+        } catch {
+            setFeedbackCopia('Não foi possível copiar. Selecione o número e copie manualmente.');
+        }
+    };
+
+    if (confirmacao) {
+        return (
+            <section aria-label="Confirmação do registro">
+                <div role="status">
+                    <p>{confirmacao.mensagem}</p>
+                    <p>Protocolo <strong>{confirmacao.protocolo}</strong></p>
+                    <p>Guarde este número para acompanhar sua manifestação.</p>
+                </div>
+                <button type="button" onClick={copiarProtocolo}>Copiar protocolo</button>
+                <p role="status">{feedbackCopia}</p>
+            </section>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit}>
@@ -98,12 +143,47 @@ function ReclamacaoForm() {
                 </>
             )}
 
-            <label>Reclamação</label><br />
+            <label htmlFor="texto-reclamacao">Reclamação</label><br />
             <textarea 
+                id="texto-reclamacao"
                 value={reclamacao} 
-                onChange={(e) => setReclamacao(e.target.value)} 
+                onChange={(e) => {
+                    setReclamacao(e.target.value);
+                    setResultadoIA(null);
+                    setUsarSugestao(false);
+                }}
                 required 
             /><br />
+
+            <fieldset>
+                <legend>Reformulação por IA (opcional)</legend>
+                <p>Ao pedir uma sugestão, o relato é processado pelo Gemini. Evite incluir dados pessoais desnecessários.</p>
+                <button
+                    type="button"
+                    onClick={gerarSugestao}
+                    disabled={gerandoSugestao || !reclamacao.trim() || reclamacao.length > 5000}
+                >
+                    {gerandoSugestao ? 'Reformulando…' : 'Sugerir reformulação'}
+                </button>
+                {reclamacao.length > 5000 && <p>A reformulação aceita até 5.000 caracteres.</p>}
+                {revisao?.erro && (
+                    <p role="alert">{revisao.erro} Você pode enviar o relato original.</p>
+                )}
+                {sugestao && (
+                    <>
+                        <p>Confira datas, valores, protocolos e pedidos antes de usar a sugestão.</p>
+                        <label htmlFor="texto-sugerido">Sugestão da IA</label><br />
+                        <textarea id="texto-sugerido" value={sugestao} readOnly /><br />
+                        <button type="button" onClick={() => setUsarSugestao(true)} disabled={usarSugestao}>
+                            Usar sugestão no envio
+                        </button>
+                        <button type="button" onClick={() => setUsarSugestao(false)} disabled={!usarSugestao}>
+                            Manter original
+                        </button>
+                        <p role="status">{usarSugestao ? 'Sugestão selecionada para envio.' : 'Original selecionado para envio.'}</p>
+                    </>
+                )}
+            </fieldset>
 
             <label>Suba um arquivo</label><br />
             <input 
@@ -156,7 +236,10 @@ function ReclamacaoForm() {
             /> Não
             <br />
 
-            <button type="submit">Enviar formulário</button>
+            {erroRegistro && <p role="alert">{erroRegistro}</p>}
+            <button type="submit" disabled={enviando}>
+                {enviando ? 'Enviando…' : 'Enviar formulário'}
+            </button>
         </form>
     );
 }
