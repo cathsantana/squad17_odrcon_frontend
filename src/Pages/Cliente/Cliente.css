@@ -1,0 +1,209 @@
+
+/* Página do cliente */
+
+.cliente-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+/* Painel principal com duas colunas */
+
+.cliente-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  width: 100%;
+  max-width: 1000px;
+  min-height: 520px;
+
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+
+  overflow: hidden;
+}
+
+/* Área do cliente */
+
+.cliente-area {
+  display: flex;
+  flex-direction: column;
+
+  padding: 40px;
+  border-right: 1px solid #dcdcdc;
+}
+
+.cliente-header {
+  margin-bottom: 30px;
+}
+
+.cliente-header h1 {
+  margin-top: 20px;
+  margin-bottom: 8px;
+
+  font-size: 1.8rem;
+}
+
+.cliente-status {
+  margin: 0;
+
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  color: #777777;
+}
+
+.cliente-description {
+  margin-bottom: 25px;
+}
+
+/* Botões de navegação */
+
+.cliente-navigation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  max-width: 280px;
+
+  margin: 0 auto;
+  padding: 25px;
+
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+}
+
+.cliente-button {
+  display: block;
+  width: 100%;
+
+  padding: 12px 16px;
+
+  text-align: center;
+  text-decoration: none;
+
+  font: inherit;
+  font-size: 0.9rem;
+
+  color: inherit;
+  background: #ffffff;
+
+  border: 1px solid #c9c9c9;
+  border-radius: 3px;
+
+  transition: background 0.2s ease;
+}
+
+.cliente-button:hover {
+  background: #f2f2f2;
+}
+
+/* Rodapé da área do cliente */
+
+.cliente-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+
+  margin-top: auto;
+  padding-top: 30px;
+}
+
+.cliente-home-link {
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+/* Dúvidas frequentes */
+
+.cliente-faq {
+  display: flex;
+  flex-direction: column;
+
+  padding: 40px;
+  background: #fafafa;
+}
+
+.cliente-faq-header {
+  margin-bottom: 25px;
+}
+
+.cliente-faq-header h2 {
+  margin: 0 0 10px;
+
+  font-size: 1.5rem;
+}
+
+.cliente-faq-header p {
+  margin: 0;
+
+  font-size: 0.9rem;
+  color: #777777;
+}
+
+/* Caixa das perguntas */
+
+.cliente-faq-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  padding: 25px;
+
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+}
+
+.cliente-faq-item h3 {
+  margin: 0 0 8px;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.cliente-faq-item p {
+  margin: 0;
+
+  font-size: 0.85rem;
+  line-height: 1.6;
+
+  color: #666666;
+}
+
+/* Mensagens de carregamento e erro */
+
+.cliente-feedback {
+  margin: 20px 0;
+}
+
+/* Responsividade */
+
+@media (max-width: 768px) {
+  .cliente-page {
+    padding: 20px 12px;
+  }
+
+  .cliente-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-area {
+    border-right: none;
+    border-bottom: 1px solid #dcdcdc;
+
+    padding: 30px 24px;
+  }
+
+  .cliente-faq {
+    padding: 30px 24px;
+  }
+
+  .cliente-faq-content {
+    padding: 20px;
+  }
+}
