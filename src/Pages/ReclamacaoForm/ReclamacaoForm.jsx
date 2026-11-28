@@ -1,5 +1,7 @@
-import { useState } from 'react'; // [MODIFICADO] Removido o useEffect, pois os dados agora são fictícios
+import { useState } from 'react';
 import './ReclamacaoForm.css';
+
+const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
 
 function ReclamacaoForm() {
     const [isAnonimo, setIsAnonimo] = useState('');
@@ -8,23 +10,27 @@ function ReclamacaoForm() {
     const [solucao, setSolucao] = useState('');
     const [querAcordo, setQuerAcordo] = useState('');
     const [arquivo, setArquivo] = useState(null);
-    const opcoesFicticias = Array.from({ length: 20 }, (_, i) => i + 1);
     const [empresaSelecionada, setEmpresaSelecionada] = useState('');
     const [unidadeSelecionada, setUnidadeSelecionada] = useState('');
+    const [enviando, setEnviando] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (enviando) return;
 
+        const anonimo = isAnonimo === 'true';
+        const temSolucao = querSolucao === 'true';
         const formData = new FormData();
-        
-        formData.append('isAnonimo', isAnonimo === 'true');
-        formData.append('reclamacao', reclamacao);
-        formData.append('hasSolucao', querSolucao === 'true');
-        formData.append('solucao', querSolucao === 'true' ? solucao : '');
-        formData.append('hasAcordo', querAcordo === 'true');
 
-        if (isAnonimo === 'true') {
+        formData.append('isAnonimo', String(anonimo));
+        formData.append('reclamacao', reclamacao);
+        formData.append('hasSolucao', String(temSolucao));
+        formData.append('solucao', temSolucao ? solucao : '');
+        formData.append('hasAcordo', String(querAcordo === 'true'));
+
+        if (anonimo) {
             formData.append('idEmpresa', empresaSelecionada);
+
             if (unidadeSelecionada) {
                 formData.append('idUnidade', unidadeSelecionada);
             }
@@ -34,129 +40,190 @@ function ReclamacaoForm() {
             formData.append('arquivo', arquivo);
         }
 
+        setEnviando(true);
+
         try {
-            const response = await fetch('http://localhost:8080/api/reclamacao', {
+            const respostaCsrf = await fetch('/api/auth/csrf', {
+                credentials: 'include',
+                cache: 'no-store',
+            });
+
+            if (!respostaCsrf.ok) {
+                throw new Error(
+                    `Não foi possível iniciar o envio (${respostaCsrf.status}).`
+                );
+            }
+
+            const { headerName, token } = await respostaCsrf.json();
+
+            if (!headerName || !token) {
+                throw new Error('O backend não retornou um token de segurança válido.');
+            }
+
+            const resposta = await fetch('/api/reclamacao', {
                 method: 'POST',
+                credentials: 'include',
+                headers: { [headerName]: token },
                 body: formData,
             });
 
-            if (response.ok) {
-                const resultado = await response.json();
-                console.log('Sucesso!', resultado);
-                alert('Reclamação e arquivo enviados com sucesso!');
-            } else {
-                alert('Erro ao enviar.');
+            const mensagem = (await resposta.text()).trim();
+
+            if (!resposta.ok) {
+                const textoDoBackend = resposta.headers
+                    .get('content-type')
+                    ?.startsWith('text/plain');
+
+                const detalhe = textoDoBackend && mensagem ? ` ${mensagem}` : '';
+                throw new Error(`Erro ao enviar (${resposta.status}).${detalhe}`);
             }
-        } catch (error) {
-            console.error('Erro de conexão:', error);
+
+            alert(mensagem || 'Reclamação enviada com sucesso!');
+        } catch (erro) {
+            alert(erro.message || 'Não foi possível conectar ao servidor.');
+        } finally {
+            setEnviando(false);
         }
     };
 
     return (
         <form onSubmit={handleSubmit}>
-            <label>Anônimo?</label><br />
-            <input 
-                type="radio" 
-                name="is_anonimo" 
-                value="true" 
-                onChange={(e) => setIsAnonimo(e.target.value)} 
-                required 
-            /> Sim
-            <input 
-                type="radio" 
-                name="is_anonimo" 
-                value="false" 
-                onChange={(e) => setIsAnonimo(e.target.value)} 
-                required 
-            /> Não
+            <span>Anônimo?</span><br />
+            <label>
+                <input
+                    type="radio"
+                    name="is_anonimo"
+                    value="true"
+                    checked={isAnonimo === 'true'}
+                    onChange={(event) => setIsAnonimo(event.target.value)}
+                    required
+                /> Sim
+            </label>
+            <label>
+                <input
+                    type="radio"
+                    name="is_anonimo"
+                    value="false"
+                    checked={isAnonimo === 'false'}
+                    onChange={(event) => setIsAnonimo(event.target.value)}
+                    required
+                /> Não
+            </label>
             <br />
 
             {isAnonimo === 'true' && (
                 <>
-                    <label>Empresa</label><br />
-                    <select 
-                        value={empresaSelecionada} 
-                        onChange={(e) => setEmpresaSelecionada(e.target.value)} 
+                    <label htmlFor="reclamacao-empresa">Empresa</label><br />
+                    <select
+                        id="reclamacao-empresa"
+                        value={empresaSelecionada}
+                        onChange={(event) => {
+                            setEmpresaSelecionada(event.target.value);
+                            setUnidadeSelecionada('');
+                        }}
                         required
                     >
                         <option value="">Selecione a empresa...</option>
-                        {opcoesFicticias.map((num) => (
-                            <option key={num} value={num}>Empresa {num}</option>
+                        {opcoesFicticias.map((numero) => (
+                            <option key={numero} value={numero}>
+                                Empresa {numero}
+                            </option>
                         ))}
                     </select><br />
 
-                    <label>Unidade (Opcional)</label><br />
-                    <select 
-                        value={unidadeSelecionada} 
-                        onChange={(e) => setUnidadeSelecionada(e.target.value)}
+                    <label htmlFor="reclamacao-unidade">Unidade (opcional)</label><br />
+                    <select
+                        id="reclamacao-unidade"
+                        value={unidadeSelecionada}
+                        onChange={(event) => setUnidadeSelecionada(event.target.value)}
                     >
                         <option value="">Nenhuma unidade</option>
-                        {opcoesFicticias.map((num) => (
-                            <option key={num} value={num}>Unidade {num}</option>
+                        {opcoesFicticias.map((numero) => (
+                            <option key={numero} value={numero}>
+                                Unidade {numero}
+                            </option>
                         ))}
                     </select><br />
                 </>
             )}
 
-            <label>Reclamação</label><br />
-            <textarea 
-                value={reclamacao} 
-                onChange={(e) => setReclamacao(e.target.value)} 
-                required 
+            <label htmlFor="reclamacao-descricao">Reclamação</label><br />
+            <textarea
+                id="reclamacao-descricao"
+                value={reclamacao}
+                onChange={(event) => setReclamacao(event.target.value)}
+                required
             /><br />
 
-            <label>Suba um arquivo</label><br />
-            <input 
-                type="file" 
-                onChange={(e) => setArquivo(e.target.files[0])} 
+            <label htmlFor="reclamacao-arquivo">Suba um arquivo</label><br />
+            <input
+                id="reclamacao-arquivo"
+                type="file"
+                onChange={(event) => setArquivo(event.target.files[0] ?? null)}
             /><br />
 
-            <label>Deseja propor solução?</label><br />
-            <input 
-                type="radio" 
-                name="quer_solucao" 
-                value="true" 
-                onChange={(e) => setQuerSolucao(e.target.value)} 
-                required
-            /> Sim
-            <input 
-                type="radio" 
-                name="quer_solucao" 
-                value="false" 
-                onChange={(e) => setQuerSolucao(e.target.value)} 
-                required
-            /> Não            
+            <span>Deseja propor solução?</span><br />
+            <label>
+                <input
+                    type="radio"
+                    name="quer_solucao"
+                    value="true"
+                    checked={querSolucao === 'true'}
+                    onChange={(event) => setQuerSolucao(event.target.value)}
+                    required
+                /> Sim
+            </label>
+            <label>
+                <input
+                    type="radio"
+                    name="quer_solucao"
+                    value="false"
+                    checked={querSolucao === 'false'}
+                    onChange={(event) => setQuerSolucao(event.target.value)}
+                    required
+                /> Não
+            </label>
             <br />
 
             {querSolucao === 'true' && (
                 <>
-                    <textarea 
+                    <label htmlFor="reclamacao-solucao">Solução proposta</label><br />
+                    <textarea
+                        id="reclamacao-solucao"
                         placeholder="Descreva a solução..."
-                        value={solucao} 
-                        onChange={(e) => setSolucao(e.target.value)} 
-                        required 
+                        value={solucao}
+                        onChange={(event) => setSolucao(event.target.value)}
+                        required
                     /><br />
                 </>
             )}
 
-            <label>Deseja formalizar o acordo?</label><br />
-            <input 
-                type="radio" 
-                name="quer_acordo" 
-                value="true" 
-                onChange={(e) => setQuerAcordo(e.target.value)} 
-                required 
-            /> Sim
-            <input 
-                type="radio" 
-                name="quer_acordo" 
-                value="false" 
-                onChange={(e) => setQuerAcordo(e.target.value)}
-                required
-            /> Não
+            <span>Deseja formalizar o acordo?</span><br />
+            <label>
+                <input
+                    type="radio"
+                    name="quer_acordo"
+                    value="true"
+                    checked={querAcordo === 'true'}
+                    onChange={(event) => setQuerAcordo(event.target.value)}
+                    required
+                /> Sim
+            </label>
+            <label>
+                <input
+                    type="radio"
+                    name="quer_acordo"
+                    value="false"
+                    checked={querAcordo === 'false'}
+                    onChange={(event) => setQuerAcordo(event.target.value)}
+                    required
+                /> Não
+            </label>
             <br />
 
-            <button type="submit">Enviar formulário</button>
+            <button type="submit" disabled={enviando}>
+                {enviando ? 'Enviando...' : 'Enviar formulário'}
+            </button>
         </form>
     );
 }
