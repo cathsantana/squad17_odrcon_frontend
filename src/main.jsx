@@ -10,6 +10,7 @@ import Login from './Pages/Login/Login.jsx'
 import Cadastro from './Pages/Cadastro/Cadastro.jsx'
 import Cliente from './Pages/Cliente/Cliente.jsx'
 import RevisaoIA from './Pages/RevisaoIA/RevisaoIA.jsx'
+import Propostas from './Pages/Propostas/Propostas.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <App /> },
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/cliente', element: <Cliente /> },
   { path: '/revisao-ia', element: <RevisaoIA /> },
+  {
+    path: '/manifestacoes/:idManifestacao/propostas',
+    element: <Propostas />,
+  },
 ])
 
 createRoot(document.getElementById('root')).render(
